@@ -9,13 +9,24 @@ describe('util.flatObj', function () {
     }
   });
 
-  it('should flat a object with primary types!', function () {
-    let src = {a: 1, b: {c: true, d: {b: 1, c: '1'}}};
+  it('should not flat a object if not plain object!', function () {
+    let src = {a: 1, b: {c: true, d: {b: [1, 2, 3], c: '1'}}};
     let expected = {
-      a: 1, b: {c: true, d: {b: 1, c: '1'}},
-      'b.c': true, 'b.d': {b: 1, c: '1'}, 'b.d.b': 1, 'b.d.c': '1'
+      a: 1, b: {c: true, d: {b: [1, 2, 3], c: '1'}},
+      'b.c': true, 'b.d': {b: [1, 2, 3], c: '1'}, 'b.d.b': [1, 2, 3], 'b.d.c': '1'
     };
     assert.deepEqual(flatObj(src), expected);
+  });
+
+  it('should flat a object with prefix right', function () {
+    let src = {a: 1, b: {c: '1', d: [1, 2, 3]}};
+    let expected = {
+      'a.b.a': 1,
+      'a.b.b': {c: '1', d: [1, 2, 3]},
+      'a.b.b.c': '1',
+      'a.b.b.d': [1, 2, 3]
+    };
+    assert.deepEqual(flatObj(src, 'a.b'), expected);
   });
 });
 
@@ -65,7 +76,7 @@ describe('util.putFlatedObj', function () {
       triggeredChangeHandler = true;
     });
     assert.ok(triggeredChangeHandler);
-    assert.sameMembers(['b', 'b.c'], triggerTypes);
-    assert.deepEqual(flated, {a: 1, b: {c: [1, 2]}, 'b.c': [1, 2]});
+    assert.sameMembers(['b'], triggerTypes);
+    assert.deepEqual(flated, {a: 1, b: {d: 1}, 'b.d': 1});
   });
 });
