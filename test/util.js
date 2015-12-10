@@ -70,13 +70,13 @@ describe('util.putFlatedObj', function () {
   it('should update object entirely and trigger change events ', function () {
     let triggerTypes = [];
     let triggeredChangeHandler = false;
-    let flated = flatObj({a: 1, b: {c: 2}});
-    putFlatedObj(flated, 'b', {d: 1}, (query) => {
+    let flated = flatObj({a: 1, b: {c: 2, e: {f: 1}}});
+    putFlatedObj(flated, 'b', {d: 1, f: {e: 1}}, (query) => {
       triggerTypes.push(query);
       triggeredChangeHandler = true;
     });
     assert.ok(triggeredChangeHandler);
-    assert.sameMembers(['b'], triggerTypes);
-    assert.deepEqual(flated, {a: 1, b: {d: 1}, 'b.d': 1});
+    assert.sameMembers(['b', 'b.c', 'b.d', 'b.e', 'b.e.f', 'b.f', 'b.f.e'], triggerTypes);
+    assert.deepEqual(flated, {a: 1, b: {d: 1, f: {e: 1}}, 'b.d': 1, 'b.f': {e: 1}, 'b.f.e': 1});
   });
 });
