@@ -1,5 +1,8 @@
 import {assert} from 'chai';
-import {FlatMap, iterateObj, flatObj, patchFlatedObj, putFlatedObj} from '../lib/util';
+import {
+  FlatMap, iterateObj, flatObj,
+  patchFlatedObj, putFlatedObj, putEntireFlatedObj
+} from '../lib/util';
 
 describe('util.iterateObj', function () {
   it('should raise TypeError when iterObj parameter is not plain object!', function () {
@@ -81,6 +84,19 @@ describe('util.putFlatedObj', function () {
   });
 });
 
+describe('util.putEntireFlatedObj', function () {
+  it('should update object entirely and trigger change events ', function () {
+    let triggerTypes = [];
+    let flated = flatObj({a: 1, b: {c: 2}});
+    flated = putEntireFlatedObj(flated, {a: 1, c: {d: [1, 2, 3], e: 1}}, (query) => {
+      triggerTypes.push(query);
+    });
+    assert.ok(triggerTypes.length);
+    assert.sameMembers(['', 'b', 'b.c', 'c', 'c.d', 'c.e'], triggerTypes);
+    assert.deepEqual(flated, {a: 1, c: {d: [1, 2, 3], e: 1}, 'c.d': [1, 2, 3], 'c.e': 1});
+  });
+});
+
 describe('util.FlatMap', function () {
   it('should get value deep cloned default, shallow clone with isDeepClone is false', function () {
     let src = {a: 1, b: {c: {d: 1}}};
@@ -125,4 +141,19 @@ describe('util.FlatMap', function () {
     assert.deepEqual(flated.getSrc(false).b, flated.get('b', false));
   });
 
+  it('should change all when put entirely', function () {
+    let triggered = [];
+    let flated = new FlatMap({a: 1, b: {c: 2}});
+    let cover = {a: 1, b: {e: 1}};
+    flated.put('', cover, (query, value) => {
+      triggered.push([query, value]);
+    });
+    assert.ok(triggered.length);
+    assert.deepEqual([
+      ['', cover],
+      ['b.c', undefined],
+      ['b.e', 1],
+      ['b', cover.b]], triggered);
+    assert.deepEqual(flated.getSrc(false), flated.get(false));
+  });
 });
