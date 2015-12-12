@@ -108,7 +108,7 @@ describe('util.FlatMap', function () {
       triggered.push([query, value]);
     });
     assert.ok(triggered.length);
-    assert.deepEqual([['b', {c: 2, d: 1}], ['b.d', 1]], triggered);
+    assert.deepEqual([['b.d', 1], ['b', {c: 2, d: 1}]], triggered);
     assert.deepEqual(flated.getSrc(false).b, flated.get('b', false));
     assert.deepEqual(flated.getSrc().b, flated.get('b', false));
 
