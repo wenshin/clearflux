@@ -3,12 +3,12 @@ import { StoreWritePermissionError } from '../lib/error';
 import Store from '../lib/store';
 
 describe('store', function () {
+  let action = {};
 
   it('should not put values directly!', function () {
     let store = new Store({a: 1, b: {c: 1}});
     assert.throws(() => store.put('a', 2), StoreWritePermissionError);
 
-    let action = {};
     store.registerWriter(action);
     assert.doesNotThrow(() => store.put('a', 2, action), StoreWritePermissionError);
   });
@@ -34,7 +34,6 @@ describe('store', function () {
       assert.deepEqual(exceptValue, b.value);
     });
 
-    let action = {get: () => {}};
     store.registerWriter(action);
     store.put('b.c', 2, action);
 
@@ -56,7 +55,6 @@ describe('store', function () {
       triggerValues.push([a.value, b.value]);
     });
 
-    let action = {get: () => {}};
     store.registerWriter(action);
     store.put('b.c', 2, action);
 
@@ -75,7 +73,6 @@ describe('store', function () {
       triggerValues.push([a.value, b.value]);
     });
 
-    let action = {get: () => {}};
     store.registerWriter(action);
     store.patch({b: {d: 2}}, action);
 
@@ -95,7 +92,6 @@ describe('store', function () {
     store.onChange('a&b', handler);
     store.offChange('a&b', handler);
 
-    let action = {get: () => {}};
     store.registerWriter(action);
     store.patch({b: {d: 2}}, action);
 
@@ -104,5 +100,55 @@ describe('store', function () {
       assert.deepEqual(triggerValues, [[1, {c: 1}]]);
       done();
     }, 25);
+  });
+
+  it('should trigger change event when set loading and stop loading', function (done) {
+    let store = new Store({a: 1, b: {c: 1}});
+    let triggerValues = [];
+    store.onChange('b', b => {
+      triggerValues.push(b);
+    });
+    store.registerWriter(action);
+    store.startLoading('b', action);
+
+    setTimeout(() => {
+      store.stopLoading('b', action);
+      store.setErrors('b', 'errors', action);
+    }, 30);
+
+    setTimeout(() => {
+      assert.ok(triggerValues.length, `没有触发事件`);
+      assert.deepEqual(triggerValues, [
+        {loading: false, errors: undefined, value: {c: 1}},
+        {loading: true, errors: undefined, value: {c: 1}},
+        // 两个连续的改变，只触发一次事件
+        {loading: false, errors: ['errors'], value: {c: 1}}
+      ]);
+      done();
+    }, 60);
+  });
+
+  it('should trigger change event when set erros and remove errors', function (done) {
+    let store = new Store({a: 1, b: {c: 1}});
+    let triggerValues = [];
+    store.onChange('b', b => {
+      triggerValues.push(b);
+    });
+    store.registerWriter(action);
+    store.setErrors('b', 'errors', action);
+
+    setTimeout(() => {
+      store.removeErrors('b', action);
+    }, 30);
+
+    setTimeout(() => {
+      assert.ok(triggerValues.length, `没有触发事件`);
+      assert.deepEqual(triggerValues, [
+        {loading: false, errors: undefined, value: {c: 1}},
+        {loading: false, errors: ['errors'], value: {c: 1}},
+        {loading: false, errors: undefined, value: {c: 1}}
+      ]);
+      done();
+    }, 60);
   });
 });
