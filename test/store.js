@@ -28,10 +28,10 @@ describe('store', function () {
       // 事件更新时再一次触发事件
       {c: 2}
     ];
-    store.onChange('b', value => {
+    store.onChange('b', b => {
       let exceptValue = excepted.shift();
-      assert.notEqual(exceptValue, value);
-      assert.deepEqual(exceptValue, value);
+      assert.notEqual(exceptValue, b.value);
+      assert.deepEqual(exceptValue, b.value);
     });
 
     let action = {get: () => {}};
@@ -49,11 +49,11 @@ describe('store', function () {
     let triggerValues = [];
     let bTriggerValues = [];
     store.onChange('b', b => {
-      bTriggerValues.push(b);
+      bTriggerValues.push(b.value);
     });
 
     store.onChange('a&b', (a, b) => {
-      triggerValues.push([a, b]);
+      triggerValues.push([a.value, b.value]);
     });
 
     let action = {get: () => {}};
@@ -72,7 +72,7 @@ describe('store', function () {
     let store = new Store({a: 1, b: {c: 1}});
     let triggerValues = [];
     store.onChange('a&b', (a, b) => {
-      triggerValues.push([a, b]);
+      triggerValues.push([a.value, b.value]);
     });
 
     let action = {get: () => {}};
@@ -90,7 +90,7 @@ describe('store', function () {
     let store = new Store({a: 1, b: {c: 1}});
     let triggerValues = [];
     let handler = (a, b) => {
-      triggerValues.push([a, b]);
+      triggerValues.push([a.value, b.value]);
     };
     store.onChange('a&b', handler);
     store.offChange('a&b', handler);
