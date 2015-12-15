@@ -20,6 +20,18 @@ describe('store', function () {
     assert.deepEqual(store.getDefault(), defaultValues);
   });
 
+  it('should get all data deeply copied default when queries not supply', function() {
+    let defaultValues = {a: 1, b: {c: 1}, d: [{a: 1}, {b: 2}]};
+    let store = new Store(defaultValues);
+    assert.notEqual(store.get().value.b, defaultValues.b);
+    assert.deepEqual(store.get().value, defaultValues);
+    assert.notEqual(store.get('d').value, defaultValues.d);
+    assert.deepEqual(store.get('d').value, defaultValues.d);
+    assert.deepEqual(store.get(['b', 'd']), [
+      {value: defaultValues.b, loading: false, errors: undefined},
+      {value: defaultValues.d, loading: false, errors: undefined}]);
+  });
+
   it('should trigger root level property change event', function (done) {
     let store = new Store({a: 1, b: {c: 1}});
     let excepted = [
@@ -28,10 +40,12 @@ describe('store', function () {
       // 事件更新时再一次触发事件
       {c: 2}
     ];
-    store.onChange('b', b => {
+    store.onChange('b', function(b) {
       let exceptValue = excepted.shift();
       assert.notEqual(exceptValue, b.value);
       assert.deepEqual(exceptValue, b.value);
+      // this is the store object
+      assert.equal(this. store);
     });
 
     store.registerWriter(action);
