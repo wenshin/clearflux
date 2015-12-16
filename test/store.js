@@ -2,6 +2,8 @@ import assert from 'assert';
 import { StoreWritePermissionError } from '../lib/error';
 import Store from '../lib/store';
 
+// NOTE: setTimeout 延时时间是经过试验设置的，如果修改可能会影响测试结果
+
 describe('store', function () {
   let action = {};
 
@@ -54,7 +56,7 @@ describe('store', function () {
     setTimeout(() => {
       assert.ok(!excepted.length, `值为“${excepted}”的事件没有触发`);
       done();
-    }, 25);
+    }, 20);
   });
 
   it('should trigger multi watch right when put', function (done) {
@@ -77,7 +79,7 @@ describe('store', function () {
       assert.deepEqual(triggerValues, [[1, {c: 1}], [1, {c: 2}]]);
       assert.deepEqual(bTriggerValues, [{c: 1}, {c: 2}]);
       done();
-    }, 25);
+    }, 20);
   });
 
   it('should trigger multi watch right when patch', function (done) {
@@ -94,7 +96,7 @@ describe('store', function () {
       assert.ok(triggerValues.length, `没有触发事件`);
       assert.deepEqual(triggerValues, [[1, {c: 1}], [1, {c: 1, d: 2}]]);
       done();
-    }, 25);
+    }, 20);
   });
 
   it('should not trigger change event after offChange', function (done) {
@@ -113,7 +115,7 @@ describe('store', function () {
       assert.ok(triggerValues.length, `没有触发事件`);
       assert.deepEqual(triggerValues, [[1, {c: 1}]]);
       done();
-    }, 25);
+    }, 20);
   });
 
   it('should trigger change event when set loading and stop loading', function (done) {
@@ -128,7 +130,7 @@ describe('store', function () {
     setTimeout(() => {
       store.stopLoading('b', action);
       store.setErrors('b', 'errors', action);
-    }, 30);
+    }, 20);
 
     setTimeout(() => {
       assert.ok(triggerValues.length, `没有触发事件`);
@@ -139,7 +141,7 @@ describe('store', function () {
         {loading: false, errors: ['errors'], value: {c: 1}}
       ]);
       done();
-    }, 60);
+    }, 40);
   });
 
   it('should trigger change event when set erros and remove errors', function (done) {
@@ -153,7 +155,7 @@ describe('store', function () {
 
     setTimeout(() => {
       store.removeErrors('b', action);
-    }, 30);
+    }, 20);
 
     setTimeout(() => {
       assert.ok(triggerValues.length, `没有触发事件`);
@@ -163,6 +165,79 @@ describe('store', function () {
         {loading: false, errors: undefined, value: {c: 1}}
       ]);
       done();
-    }, 60);
+    }, 40);
+  });
+});
+
+describe('store:combine', function () {
+  let store = new Store({a: 0});
+  let store1 = new Store({a: 1});
+  let store2 = new Store({a: 2});
+  let action = {name: 'combineAction'};
+  let triggerValues = [];
+  let onChange = value => triggerValues.push(value.loading);
+  store.registerWriter(action);
+  store1.registerWriter(action);
+  store2.registerWriter(action);
+  store.combineLoadings('globalLoading', [['a', store1], ['a', store2]]);
+
+  beforeEach(() => {
+    triggerValues = [];
+    store.onChange('globalLoading', onChange);
+  });
+
+  afterEach(() => {
+    store.offChange('globalLoading', onChange);
+    store.stopLoading('globalLoading', action);
+    store1.stopLoading('a', action);
+    store2.stopLoading('a', action);
+  });
+
+
+  it('should loading and end loading one store right', done => {
+    store1.startLoading('a', action);
+
+    setTimeout(() => {
+      store1.stopLoading('a', action);
+    }, 20);
+
+    setTimeout(() => {
+      assert.ok(triggerValues.length, `没有触发事件`);
+      assert.deepEqual(triggerValues, [false, true, false]);
+      done();
+    }, 50);
+  });
+
+  it('loading two store and end loading one store should right', done => {
+    store1.startLoading('a', action);
+    store2.startLoading('a', action);
+
+    setTimeout(() => {
+      store1.stopLoading('a', action);
+    }, 20);
+
+    setTimeout(() => {
+      assert.ok(triggerValues.length, `没有触发事件`);
+      // 第三次因为仍然是 loading 状态所以不触发第三次事件
+      assert.deepEqual(triggerValues, [false, true]);
+      done();
+    }, 50);
+  });
+
+  it('loading two store and end loading two store should right ', done => {
+    store1.startLoading('a', action);
+    store2.startLoading('a', action);
+
+    setTimeout(() => {
+      store1.stopLoading('a', action);
+      store2.stopLoading('a', action);
+    }, 20);
+
+    setTimeout(() => {
+      assert.ok(triggerValues.length, `没有触发事件`);
+      // 第三次因为仍然是 loading 状态所以不触发第三次事件
+      assert.deepEqual(triggerValues, [false, true, false]);
+      done();
+    }, 50);
   });
 });
