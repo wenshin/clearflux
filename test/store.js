@@ -30,12 +30,13 @@ describe('store', function () {
     assert.notEqual(store.get('d').value, defaultValues.d);
     assert.deepEqual(store.get('d').value, defaultValues.d);
     assert.deepEqual(store.get(['b', 'd']), [
-      {value: defaultValues.b, loading: false, errors: undefined},
-      {value: defaultValues.d, loading: false, errors: undefined}]);
+      {value: defaultValues.b, loading: false, errors: []},
+      {value: defaultValues.d, loading: false, errors: []}]);
   });
 
   it('should trigger root level property change event', function (done) {
     let store = new Store({a: 1, b: {c: 1}});
+
     let excepted = [
       // 绑定时即触发一次事件
       store.getDefault().b,
@@ -50,10 +51,25 @@ describe('store', function () {
       assert.equal(this. store);
     });
 
+    let allExcepted = [
+      // 绑定时即触发一次事件
+      store.getDefault(),
+      // b 更新时触发一次整个数据更新事件
+      {a: 1, b: {c: 2}}
+    ];
+    store.onChange(function(b) {
+      let exceptValue = allExcepted.shift();
+      assert.notEqual(exceptValue, b.value);
+      assert.deepEqual(exceptValue, b.value);
+      // this is the store object
+      assert.equal(this. store);
+    });
+
     store.registerWriter(action);
     store.put('b.c', 2, action);
 
     setTimeout(() => {
+      assert.ok(!allExcepted.length, `整个数据，值为“${allExcepted}”的事件没有触发`);
       assert.ok(!excepted.length, `值为“${excepted}”的事件没有触发`);
       done();
     }, 20);
@@ -135,8 +151,8 @@ describe('store', function () {
     setTimeout(() => {
       assert.ok(triggerValues.length, `没有触发事件`);
       assert.deepEqual(triggerValues, [
-        {loading: false, errors: undefined, value: {c: 1}},
-        {loading: true, errors: undefined, value: {c: 1}},
+        {loading: false, errors: [], value: {c: 1}},
+        {loading: true, errors: [], value: {c: 1}},
         // 两个连续的改变，只触发一次事件
         {loading: false, errors: ['errors'], value: {c: 1}}
       ]);
@@ -160,9 +176,9 @@ describe('store', function () {
     setTimeout(() => {
       assert.ok(triggerValues.length, `没有触发事件`);
       assert.deepEqual(triggerValues, [
-        {loading: false, errors: undefined, value: {c: 1}},
+        {loading: false, errors: [], value: {c: 1}},
         {loading: false, errors: ['errors'], value: {c: 1}},
-        {loading: false, errors: undefined, value: {c: 1}}
+        {loading: false, errors: [], value: {c: 1}}
       ]);
       done();
     }, 40);
