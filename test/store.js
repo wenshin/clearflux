@@ -34,6 +34,32 @@ describe('store', function () {
       {value: defaultValues.d, loading: false, errors: []}]);
   });
 
+  it('should trigger root level property change event when no other events bind', function (done) {
+    let store = new Store({a: 1, b: {c: 1}});
+
+    let excepted = [
+      // 绑定时即触发一次事件
+      store.getDefault(),
+      // b 更新时触发一次整个数据更新事件
+      {a: 1, b: {c: 2}}
+    ];
+    store.onChange(function(s) {
+      let exceptValue = excepted.shift();
+      assert.notEqual(exceptValue, s.value);
+      assert.deepEqual(exceptValue, s.value);
+      // this is the store object
+      assert.equal(this. store);
+    });
+
+    store.registerWriter(action);
+    store.put('b.c', 2, action);
+
+    setTimeout(() => {
+      assert.ok(!excepted.length, `值为“${excepted}”的事件没有触发`);
+      done();
+    }, 20);
+  });
+
   it('should trigger root level property change event', function (done) {
     let store = new Store({a: 1, b: {c: 1}});
 
@@ -57,10 +83,10 @@ describe('store', function () {
       // b 更新时触发一次整个数据更新事件
       {a: 1, b: {c: 2}}
     ];
-    store.onChange(function(b) {
+    store.onChange(function(s) {
       let exceptValue = allExcepted.shift();
-      assert.notEqual(exceptValue, b.value);
-      assert.deepEqual(exceptValue, b.value);
+      assert.notEqual(exceptValue, s.value);
+      assert.deepEqual(exceptValue, s.value);
       // this is the store object
       assert.equal(this. store);
     });
