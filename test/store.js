@@ -102,24 +102,24 @@ describe('store', function () {
   });
 
   it('should trigger multi watch right when put', function (done) {
-    let store = new Store({a: 1, b: {c: 1}});
+    let store = new Store({a: 1, b: {c: {}}});
     let triggerValues = [];
     let bTriggerValues = [];
     store.onChange('b', b => {
       bTriggerValues.push(b.value);
     });
 
-    store.onChange('a&b', (a, b) => {
-      triggerValues.push([a.value, b.value]);
+    store.onChange('b.c', (c) => {
+      triggerValues.push(c.value);
     });
 
     store.registerWriter(action);
-    store.put('b.c', 2, action);
+    store.put('b', {c: {d: 2}}, action);
 
     setTimeout(() => {
       assert.ok(triggerValues.length, `没有触发事件`);
-      assert.deepEqual(triggerValues, [[1, {c: 1}], [1, {c: 2}]]);
-      assert.deepEqual(bTriggerValues, [{c: 1}, {c: 2}]);
+      assert.deepEqual(triggerValues, [{}, {d: 2}]);
+      assert.deepEqual(bTriggerValues, [{c: {}}, {c: {d: 2}}]);
       done();
     }, 20);
   });
