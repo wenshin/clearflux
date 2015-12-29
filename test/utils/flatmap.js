@@ -1,16 +1,16 @@
 import {assert} from 'chai';
-import {
-  FlatMap, iterateObj, flatObj,
+import FlatMap, {
+  iterateObj, flatObj,
   patchFlatedObj, putFlatedObj, putEntireFlatedObj
-} from '../lib/util';
+} from '../../lib/utils/flatmap';
 
-describe('util.iterateObj', function () {
+describe('iterateObj', function () {
   it('should raise TypeError when iterObj parameter is not plain object!', function () {
     assert.throws(() => iterateObj({}, 1), TypeError);
   });
 });
 
-describe('util.flatObj', function () {
+describe('faltmap.flatObj', function () {
   it('should return the value with no nested plain object!', function () {
     let srcs = [1, '2', 'b', true, false, null, undefined, 1.23];
     for ( let src of srcs ) {
@@ -39,7 +39,7 @@ describe('util.flatObj', function () {
   });
 });
 
-describe('util.patchFlatedObj', function () {
+describe('faltmap.patchFlatedObj', function () {
   it('should update data and trigger change events ', function () {
     let triggerTypes = [];
     let flated = flatObj({a: 1, b: {c: 2}});
@@ -60,7 +60,7 @@ describe('util.patchFlatedObj', function () {
   });
 });
 
-describe('util.putFlatedObj', function () {
+describe('faltmap.putFlatedObj', function () {
   it('should update object entirely and trigger change events ', function () {
     let triggerTypes = [];
     let flated = flatObj({a: 1, b: {c: 2}});
@@ -84,7 +84,7 @@ describe('util.putFlatedObj', function () {
   });
 });
 
-describe('util.putEntireFlatedObj', function () {
+describe('faltmap.putEntireFlatedObj', function () {
   it('should update object entirely and trigger change events ', function () {
     let triggerTypes = [];
     let flated = flatObj({a: 1, b: {c: 2}});
@@ -97,7 +97,7 @@ describe('util.putEntireFlatedObj', function () {
   });
 });
 
-describe('util.FlatMap', function () {
+describe('faltmap.FlatMap', function () {
   let src = {a: 1, b: {c: {d: 1}, e: {g: 1}}};
 
   it('should get value deep cloned default, shallow clone with isDeepClone is false', function () {
