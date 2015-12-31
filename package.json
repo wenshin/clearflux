@@ -16,13 +16,14 @@
   "repository": "wenshin/clearflux",
   "devDependencies": {
     "babel-core": "^6.3.17",
+    "babel-eslint": "^4.1.6",
     "babel-preset-es2015": "^6.3.13",
     "babel-preset-stage-0": "^6.3.13",
     "chai": "^3.4.1",
     "del": "^2.0.2",
     "eslint-plugin-react": "^3.11.3",
     "gulp": "^3.6.0",
-    "gulp-babel": "^5.1.0",
+    "gulp-babel": "^6.1.1",
     "gulp-coveralls": "^0.1.0",
     "gulp-eslint": "^1.0.0",
     "gulp-exclude-gitignore": "^1.0.0",
@@ -30,7 +31,9 @@
     "gulp-mocha": "^2.0.0",
     "gulp-nsp": "^0.4.5",
     "gulp-plumber": "^1.0.0",
-    "isparta": "^3.0.3"
+    "isparta": "^4.0.0",
+    "webpack": "^1.12.9",
+    "webpack-dev-server": "^1.14.0"
   },
   "scripts": {
     "prepublish": "gulp prepublish",
