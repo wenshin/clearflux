@@ -40,7 +40,8 @@
   },
   "scripts": {
     "prepublish": "gulp prepublish",
-    "test": "gulp covertest"
+    "test": "gulp covertest",
+    "debug-test": "node debug $(which gulp) test"
   },
   "license": "MIT",
   "dependencies": {

@@ -31,8 +31,8 @@ gulp.task('nsp', function (cb) {
 gulp.task('pre-test', function () {
   return gulp.src('lib/**/*.js')
     .pipe(istanbul({
-      includeUntested: true
-,      instrumenter: isparta.Instrumenter
+      includeUntested: true,
+      instrumenter: isparta.Instrumenter
     }))
     .pipe(istanbul.hookRequire());
 });
