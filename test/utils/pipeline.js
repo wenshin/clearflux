@@ -37,13 +37,30 @@ describe('pipelineWrap', function () {
       done();
     }, 30);
   });
+
+  it('可以正常开始和结束 pipelineWrapper.mapFlow', function () {
+    let except = pipelineWrap(10)
+      .flow(v => [1*v, 2*v])
+      .mapFlow(v => 1/v)
+      .reduceFlow()
+      .reduceFlow((pre, cur) => pre + cur, 0)
+      .finish();
+    assert.equal(except, -0.1);
+  });
+
 });
 
 describe('Pipeline', function () {
   it('应该正确运行委托自 Array 的方法', function () {
-    let pipeline = new Pipeline(v => v, v => -v);
+    let pipeline = new Pipeline(
+      {name: 'pipe1', pipe: v => v},
+      {name: 'Negative', pipe: v => -v}
+    );
+
     assert.equal(pipeline.flow(10), -10);
-    pipeline.push(v => 1 / v);
+
+    pipeline.push({name: 'MultiplicativeInverse', pipe: v => 1 / v});
+
     assert.equal(pipeline.flow(10), -0.1);
   });
 });
