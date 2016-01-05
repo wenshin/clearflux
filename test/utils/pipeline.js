@@ -38,12 +38,11 @@ describe('pipelineWrap', function () {
     }, 30);
   });
 
-  it('可以正常开始和结束 pipelineWrapper.mapFlow', function () {
+  it('可以正确执行同步方法 mapFlow 和 reduceFlow', function () {
     let except = pipelineWrap(10)
       .flow(v => [1*v, 2*v])
       .mapFlow(v => 1/v)
-      .reduceFlow()
-      .reduceFlow((pre, cur) => pre + cur, 0)
+      .reduceFlow({pipe: (pre, cur) => pre + cur, initialValue: 0})
       .finish();
     assert.equal(except, 0.15);
   });
