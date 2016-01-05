@@ -45,7 +45,7 @@ describe('pipelineWrap', function () {
       .reduceFlow()
       .reduceFlow((pre, cur) => pre + cur, 0)
       .finish();
-    assert.equal(except, -0.1);
+    assert.equal(except, 0.15);
   });
 
 });
