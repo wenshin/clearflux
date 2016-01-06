@@ -47,8 +47,8 @@ describe('pipelineWrap', function () {
 
   it('可以正确执行同步方法 mapFlow 和 reduceFlow', function () {
     let except = pipelineWrap(10)
-      .flow(v => [1*v, 2*v])
-      .mapFlow(v => 1/v)
+      .flow(v => [1*v, 2*v, 3*v])
+      .mapFlow({pipe: v => 1/v, filter: v => v < 30})
       .reduceFlow({
         pipe: (pre, cur) => pre + cur,
         initialValue: 0,
