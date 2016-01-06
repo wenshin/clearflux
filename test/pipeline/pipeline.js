@@ -1,5 +1,5 @@
 import {assert} from 'chai';
-import Pipeline, {pipelineWrap} from '../../lib/utils/pipeline';
+import Pipeline, {pipelineWrap} from '../../lib/pipeline';
 
 describe('pipelineWrap', function () {
   it('应该正确运行非异步方法', function () {
