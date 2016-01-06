@@ -1,5 +1,6 @@
 import {assert} from 'chai';
 import Pipeline, {pipelineWrap} from '../../lib/pipeline';
+import {makeRoundNumberMixin} from '../../lib/pipeline/mixins/number';
 
 describe('pipelineWrap', function () {
   it('应该正确运行非异步方法', function () {
@@ -42,7 +43,11 @@ describe('pipelineWrap', function () {
     let except = pipelineWrap(10)
       .flow(v => [1*v, 2*v])
       .mapFlow(v => 1/v)
-      .reduceFlow({pipe: (pre, cur) => pre + cur, initialValue: 0})
+      .reduceFlow({
+        pipe: (pre, cur) => pre + cur,
+        initialValue: 0,
+        postMixins: [makeRoundNumberMixin()]
+      })
       .finish();
     assert.equal(except, 0.15);
   });
