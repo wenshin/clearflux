@@ -1,5 +1,5 @@
 import {assert} from 'chai';
-import {pipelineWrap} from '../../lib/pipeline';
+import pipelineWrap from '../../lib/pipeline/pipelineWrap';
 import {makeRoundNumberMiddleware, toNumberMiddleware} from '../../lib/pipeline/middlewares/number';
 
 describe('pipelineWrap', function () {
