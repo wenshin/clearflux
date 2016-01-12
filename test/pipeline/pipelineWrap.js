@@ -1,10 +1,34 @@
 import {assert} from 'chai';
 import pipelineWrap from '../../lib/pipeline/pipelineWrap';
-import {makeRoundNumberMiddleware, toNumberMiddleware} from '../../lib/pipeline/middlewares/number';
+import {makeRoundNumberHandler, toNumberHandler} from '../../lib/pipeline/middlewares/number';
+
+let roundNumberPipelineMiddleware = {
+  type: 'pipeline',
+  name: 'roundNumberPipelineMiddleware',
+  post: makeRoundNumberHandler()
+};
+
+let roundNumberPipeMiddleware = {
+  type: 'pipe',
+  name: 'roundNumberPipeMiddleware',
+  post: makeRoundNumberHandler()
+};
+
+let toNumberPipelineMiddleware = {
+  type: 'pipeline',
+  name: 'toNumberPipelineMiddleware',
+  pre: toNumberHandler
+};
+
 
 describe('pipelineWrap', function () {
   it('应该正确运行非异步方法', function () {
-    let except = pipelineWrap('10', {middlewares: [toNumberMiddleware]})
+    let except = pipelineWrap('10',
+      {
+        name: 'pipeline1',
+        verbose: true,
+        middlewares: [toNumberPipelineMiddleware]
+      })
       .flow(v => {
         if (typeof v !== 'number') throw new TypeError('not a number');
         return v;
@@ -23,13 +47,18 @@ describe('pipelineWrap', function () {
         }, 10);
       });
     };
-    let promise = pipelineWrap(10)
+    let promise = pipelineWrap(10,
+      {
+        name: 'pipeline2',
+        verbose: true,
+        middlewares: [roundNumberPipelineMiddleware]
+      })
       .flow(v => -v)
       .flowAsync(asyncPipe)
       .flow(v => 1/v)
       .flowAsync(asyncPipe)
       .flow(v => v * 3)
-      .finish({middlewares: [makeRoundNumberMiddleware()]});
+      .finish();
     assert.ok(promise instanceof Promise, '异步结果返回 Promise 对象');
 
     let except;
@@ -46,13 +75,13 @@ describe('pipelineWrap', function () {
   // it('应该正确处理异步管道出错', function (done) {});
 
   it('可以正确执行同步方法 mapFlow 和 reduceFlow', function () {
-    let except = pipelineWrap(10)
+    let except = pipelineWrap(10, {verbose: true})
       .flow(v => [1*v, 2*v, 3*v])
-      .mapFlow({pipe: v => 1/v, filter: v => v < 30})
+      .mapFlow({handle: v => 1/v, filter: v => v < 30})
       .reduceFlow({
-        pipe: (pre, cur) => pre + cur,
+        handle: (pre, cur) => pre + cur,
         initialValue: 0,
-        postMiddlewares: [makeRoundNumberMiddleware()]
+        middlewares: [roundNumberPipeMiddleware]
       })
       .finish();
     assert.equal(except, 0.15);
