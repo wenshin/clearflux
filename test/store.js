@@ -1,4 +1,4 @@
-import assert from 'assert';
+import {assert} from 'chai';
 import { StoreWritePermissionError } from '../lib/error';
 import Store from '../lib/store';
 
