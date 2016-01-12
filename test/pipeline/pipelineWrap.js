@@ -2,6 +2,8 @@ import {assert} from 'chai';
 import pipelineWrap from '../../lib/pipeline/pipelineWrap';
 import {makeRoundNumberHandler, toNumberHandler} from '../../lib/pipeline/middlewares/number';
 
+const verbose = false;
+
 let roundNumberPipelineMiddleware = {
   type: 'pipeline',
   name: 'roundNumberPipelineMiddleware',
@@ -26,7 +28,7 @@ describe('pipelineWrap', function () {
     let except = pipelineWrap('10',
       {
         name: 'pipeline1',
-        verbose: true,
+        verbose,
         middlewares: [toNumberPipelineMiddleware]
       })
       .flow(v => {
@@ -50,7 +52,7 @@ describe('pipelineWrap', function () {
     let promise = pipelineWrap(10,
       {
         name: 'pipeline2',
-        verbose: true,
+        verbose,
         middlewares: [roundNumberPipelineMiddleware]
       })
       .flow(v => -v)
@@ -75,7 +77,7 @@ describe('pipelineWrap', function () {
   // it('应该正确处理异步管道出错', function (done) {});
 
   it('可以正确执行同步方法 mapFlow 和 reduceFlow', function () {
-    let except = pipelineWrap(10, {verbose: true})
+    let except = pipelineWrap(10, {verbose})
       .flow(v => [1*v, 2*v, 3*v])
       .mapFlow({handle: v => 1/v, filter: v => v < 30})
       .reduceFlow({
