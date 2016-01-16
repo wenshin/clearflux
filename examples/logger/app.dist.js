@@ -13,10 +13,8 @@ var _pipeline2 = _interopRequireDefault(_pipeline);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 exports.default = _pipeline2.default;
-},{"./pipeline":3}],2:[function(require,module,exports){
+},{"./pipeline":4}],2:[function(require,module,exports){
 'use strict';
-
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 Object.defineProperty(exports, "__esModule", {
   value: true
@@ -24,26 +22,28 @@ Object.defineProperty(exports, "__esModule", {
 var PipeLoggerMiddleware = exports.PipeLoggerMiddleware = {
   type: 'pipe',
   name: 'PipeLoggerMiddleware',
-  pre: function pre(pipeState) {
-    _logPipe(pipeState);
-    return _extends({}, pipeState, { skip: false });
+  pre: function pre(state) {
+    logPipe(state);
+    return state;
   },
-  post: function post(pipeState) {
-    _logPipe(pipeState, true);
-    return pipeState;
+  post: function post(state) {
+    logPipe(state, true);
+    return state;
   }
 };
 
 var PipelineLoggerMiddleware = {
   type: 'pipeline',
   name: 'PipelineLoggerMiddleware',
-  pre: function pre(pipeState) {
-    _console('groupCollapsed')(pipeState.name || 'Pipeline');
-    return pipeState;
+  pre: function pre(state) {
+    _console('groupCollapsed')(state.name || 'Pipeline');
+    state.middlewareStack.length && _console('info')('PrePipeline', state);
+    return state;
   },
-  post: function post(pipeState) {
+  post: function post(state) {
+    state.middlewareStack.length && _console('info')('postPipeline', state);
     _console('groupEnd')();
-    return pipeState;
+    return state;
   },
 
   pipeMiddleware: PipeLoggerMiddleware
@@ -56,19 +56,63 @@ function _console() {
   return (console[type] || console.log).bind(console); // eslint-disable-line no-console
 }
 
-function _logPipe(state) {
+function logPipe(state) {
   var isOutput = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
 
   var logger = isOutput ? 'log' : 'info';
   var type = isOutput ? 'out' : ' in';
+  var handlerType = isOutput ? 'post' : 'pre';
   var name = state.pipe.name || 'pipe' + state.pipe.order;
+  var logState = Object.assign({}, state);
+  logState.middlewareStack = state.middlewareStack.concat({
+    handlerType: handlerType, PipeLoggerMiddleware: PipeLoggerMiddleware,
+    inputState: state, outputState: state
+  });
+
   name = isOutput ? name.replace(/./g, ' ') : name;
-  _console(logger)('%c' + name + ' %c' + type + ' %c' + state.value, 'color: #26C6DA', 'color: #555', 'color: #26A69A', state);
+  if (isBrowser()) {
+    _console(logger)('%c' + name + ' %c' + type + ' %c' + logState.value, 'color: #26C6DA', 'color: #555', 'color: #26A69A', logState);
+  } else {
+    _console(logger)(name + ' ' + type + ' ' + logState.value, logState);
+  }
+}
+
+function isBrowser() {
+  return !!console.groupCollapsed; // eslint-disable-line no-console
 }
 
 exports.default = PipelineLoggerMiddleware;
 },{}],3:[function(require,module,exports){
 'use strict';
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.makeRoundNumberHandler = makeRoundNumberHandler;
+exports.toNumberHandler = toNumberHandler;
+function makeRoundNumberHandler() {
+  var digit = arguments.length <= 0 || arguments[0] === undefined ? 2 : arguments[0];
+
+  return function roundNumberHandler(pipeState) {
+    pipeState = toNumberHandler(pipeState);
+    return _extends({}, pipeState, { value: Number(pipeState.value.toPrecision(digit)) });
+  };
+}
+
+function toNumberHandler(pipeState) {
+  var value = Number(pipeState.value);
+  if (!Number.isNaN(value)) {
+    return _extends({}, pipeState, { value: value });
+  } else {
+    throw new TypeError('[toNumber] can not change value to Nubmer');
+  }
+}
+},{}],4:[function(require,module,exports){
+'use strict';
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
@@ -225,18 +269,15 @@ var Pipeline = (function () {
         name: this._name,
         middlewares: Pipeline.pipelineMiddlewares
       });
-      pipelined = this.reduce(function (_pipelined, _ref) {
-        var name = _ref.name;
-        var handle = _ref.handle;
-        var _ref$type = _ref.type;
-        var type = _ref$type === undefined ? 'flow' : _ref$type;
-        var _ref$middlewares = _ref.middlewares;
-        var middlewares = _ref$middlewares === undefined ? [] : _ref$middlewares;
+      pipelined = this.reduce(function (_pipelined, pipe) {
+        var _pipe$type = pipe.type;
+        var type = _pipe$type === undefined ? 'flow' : _pipe$type;
+        var _pipe$middlewares = pipe.middlewares;
+        var middlewares = _pipe$middlewares === undefined ? [] : _pipe$middlewares;
 
-        return _pipelined[type]({
-          name: name, handle: handle,
+        return _pipelined[type](_extends({}, pipe, {
           middlewares: Pipeline.commonPipeMiddlewares.concat(middlewares)
-        });
+        }));
       }, pipelined);
       return pipelined.finish();
     }
@@ -249,7 +290,7 @@ Pipeline.inheritProps = ['push', 'pop', 'shift', 'unshift', 'concat', 'slice', '
 Pipeline.pipelineMiddlewares = [];
 Pipeline.commonPipeMiddlewares = [];
 exports.default = Pipeline;
-},{"./pipelineWrap":4}],4:[function(require,module,exports){
+},{"./pipelineWrap":5}],5:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -280,19 +321,25 @@ function pipelineWrap(_input) {
 
   var _pipelineName = _ref$name === undefined ? '' : _ref$name;
 
-  var _ref$verbose = _ref.verbose;
-
-  var _verbose = _ref$verbose === undefined ? false : _ref$verbose;
-
   var _ref$middlewares = _ref.middlewares;
 
   var _pipelineMiddlewares = _ref$middlewares === undefined ? [] : _ref$middlewares;
 
-  var _pipeMiddlewares = [];
-  var _prePipeline = _execMiddleware(_pipelineMiddlewares, _warpPipeState(_input), 'pre', function (middleware) {
-    middleware.pipeMiddleware && _pipeMiddlewares.push(middleware.pipeMiddleware);
+  var _outputState = {
+    name: _pipelineName,
+    value: _input,
+    pipe: function pipe(v) {
+      return v;
+    },
+    skip: false,
+    middlewareStack: []
+  };
+
+  var _commonPipeMiddlewares = [];
+  _outputState = _execMiddlewares(_pipelineMiddlewares, _outputState, 'pre', function (middleware) {
+    middleware.pipeMiddleware && _commonPipeMiddlewares.push(middleware.pipeMiddleware);
   });
-  var _output = _prePipeline.value;
+
   var _pipeCount = 0;
   // 执行异步 Pipe 时设置为 true
   var _blocking = false;
@@ -323,7 +370,7 @@ function pipelineWrap(_input) {
       pipe = _preparePipe(pipe, 'flowAsync');
       _asyncPipeQueue.push(pipe);
       _syncPipesAfterAsync.set(pipe, []);
-      _blocking || _execAsyncPipe(_output);
+      _blocking || _execAsyncPipe(_extends({}, _outputState, { pipe: pipe }));
       return wrapper;
     },
 
@@ -367,11 +414,12 @@ function pipelineWrap(_input) {
           };
         });
       } else {
-        return finishSuccess(_output).value;
+        return finishSuccess(_outputState).value;
       }
 
-      function finishSuccess(value) {
-        return _execMiddleware(_pipelineMiddlewares, _warpPipeState(value), 'post');
+      function finishSuccess(state) {
+        state = _resetPipeState(state);
+        return _execMiddlewares(_pipelineMiddlewares, state, 'post');
       }
     }
   };
@@ -411,23 +459,26 @@ function pipelineWrap(_input) {
       var lastAsyncPipe = _asyncPipeQueue.slice(-1)[0];
       lastAsyncPipe && _syncPipesAfterAsync.get(lastAsyncPipe).push(pipe);
     } else {
-      _output = _execAllSyncPipe(_output, pipe);
+      _outputState = _execAllSyncPipe(_extends({}, _outputState, { pipe: pipe }));
     }
   }
 
-  function _execAllSyncPipe(pipeInput, pipe) {
-    switch (pipe.type) {
+  function _execAllSyncPipe(state) {
+    switch (state.pipe.type) {
       case 'map':
-        return _execSyncMapPipe(pipeInput, pipe);
+        return _execSyncMapPipe(state);
       case 'reduce':
-        return _execSyncReducePipe(pipeInput, pipe);
+        return _execSyncReducePipe(state);
       default:
-        return _execSyncPipe(pipeInput, pipe);
+        return _execSyncPipe(state);
     }
   }
 
-  function _execSyncMapPipe(pipeInput, pipe) {
-    pipeInput = [].concat(pipeInput);
+  function _execSyncMapPipe(state) {
+    var value = state.value;
+    var pipe = state.pipe;
+
+    var pipeInput = [].concat(value);
     var output = [];
 
     var filter = pipe.filter;
@@ -445,33 +496,46 @@ function pipelineWrap(_input) {
           return v;
         };
       }
-      var out = _execSyncPipe(item, cpPipe);
-      keep && output.push(out);
+      var outputState = _execSyncPipe(_extends({}, state, { pipe: cpPipe, value: item }));
+      keep && output.push(outputState.value);
     });
-    return output;
+    return _extends({}, state, { value: output });
   }
 
-  function _execSyncReducePipe(pipeInput, pipe) {
-    pipeInput = [].concat(pipeInput);
-    return _execSyncPipe(pipeInput, _extends({}, pipe, {
-      handle: function handle(iPipeInput) {
-        return iPipeInput.reduce(pipe.handle, pipe.initialValue);
-      }
-    }));
+  function _execSyncReducePipe(state) {
+    var pipe = state.pipe;
+
+    state.value = [].concat(state.value);
+    return _execSyncPipe(_extends({}, state, { pipe: _extends({}, pipe, {
+        handle: function handle(value) {
+          return value.reduce(pipe.handle, pipe.initialValue);
+        }
+      }) }));
   }
 
-  function _execSyncPipe(pipeInput, pipe) {
-    return _execSyncPipeWithMiddlewares(pipe.middlewares, _warpPipeState(pipeInput, pipe));
+  function _execSyncPipe(state) {
+    state = _resetPipeState(state);
+    var middlewares = state.pipe.middlewares;
+
+    var preState = _execPipeMiddlewares(middlewares, state, 'pre');
+
+    var outputState = _extends({}, preState, { skip: false });
+    if (!preState.skip) outputState.value = preState.pipe.handle(preState.value);
+
+    return _execPipeMiddlewares(middlewares, outputState, 'post');
   }
 
-  function _execAsyncPipe(pipeInput) {
+  function _execAsyncPipe(inputState) {
+    inputState = _resetPipeState(inputState);
+
     var pipe = _asyncPipeQueue[0];
     var name = pipe.name;
     var _pipe$middlewares2 = pipe.middlewares;
     var middlewares = _pipe$middlewares2 === undefined ? [] : _pipe$middlewares2;
 
-    var preState = _execPipeMiddleware(middlewares, _warpPipeState(pipeInput, pipe), 'pre');
-    if (preState.skip) return;
+    var preState = _execPipeMiddlewares(middlewares, _extends({}, inputState, { pipe: pipe }), 'pre');
+    var outputState = _extends({}, preState, { skip: false });
+    if (preState.skip) nextPipe(outputState);
 
     var promise = preState.pipe.handle(preState.value);
     if (!(promise && promise.then instanceof Function && promise.catch instanceof Function)) {
@@ -481,9 +545,13 @@ function pipelineWrap(_input) {
     _blocking = true;
 
     promise.then(function (data) {
-      var postState = _execPipeMiddleware(middlewares, _extends({}, preState, { value: data }), 'post');
+      var postState = _execPipeMiddlewares(middlewares, _extends({}, outputState, { value: data }), 'post');
+      nextPipe(postState);
+    }).catch(function (err) {
+      _handleErrFinish(err);
+    });
 
-      var output = postState.value;
+    function nextPipe(state) {
       _blocking = false;
 
       var _iteratorNormalCompletion = true;
@@ -492,10 +560,12 @@ function pipelineWrap(_input) {
 
       try {
         for (var _iterator = _syncPipesAfterAsync.get(pipe)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-          var syncPipeObj = _step.value;
+          var syncPipe = _step.value;
 
-          output = _execAllSyncPipe(output, syncPipeObj);
+          state = _execAllSyncPipe(_extends({}, state, { pipe: syncPipe }));
         }
+
+        // 把异步管道退出队列
       } catch (err) {
         _didIteratorError = true;
         _iteratorError = err;
@@ -512,21 +582,20 @@ function pipelineWrap(_input) {
       }
 
       _asyncPipeQueue.shift();
+      // 删除依赖关系
       _syncPipesAfterAsync.delete(pipe);
 
       if (_asyncPipeQueue.length) {
-        _execAsyncPipe(output);
+        _execAsyncPipe(state);
       } else {
-        _handleSuccFinish(output);
+        _handleSuccFinish(state);
       }
-    }).catch(function (err) {
-      _handleErrFinish(err);
-    });
+    }
   }
 
-  function _execPipeMiddleware(middlewares, inputState, type, handle) {
-    middlewares = [].concat(middlewares, _pipeMiddlewares);
-    return _execMiddleware(middlewares, inputState, type, handle);
+  function _execPipeMiddlewares(middlewares, inputState, handlerType, handle) {
+    middlewares = [].concat(middlewares, _commonPipeMiddlewares);
+    return _execMiddlewares(middlewares, inputState, handlerType, handle);
   }
 
   /**
@@ -543,52 +612,30 @@ function pipelineWrap(_input) {
    *     ```
    * @return {Object} 和 inputState 一样的对象结构
    */
-  function _execMiddleware(middlewares, inputState, type, handle) {
-    _console('group')('\n* Run Middlewar Group');
-    _console()('inputState: ', inputState, type);
-
+  function _execMiddlewares(middlewares, inputState, handlerType, handle) {
     var outputState = inputState;
 
     if (middlewares.length) {
       outputState = middlewares.reduce(function (state, middleware) {
-        _console()(' + Run Middlewar ' + middleware.name + ' ' + type + ' Handler: ');
-        _console()('   - State: ', state);
-
         assertState(state);
-        assertMiddleware(middleware, type);
+        assertMiddleware(middleware, handlerType);
         handle && handle(middleware);
-        var newState = middleware[type] ? middleware[type](state) : state;
-
-        _console()('   - NextState: ', newState);
+        var newState = Object.assign(state);
+        if (middleware[handlerType]) {
+          newState = middleware[handlerType](state);
+          newState.middlewareStack.push({
+            handlerType: handlerType, middleware: middleware,
+            inputState: state, outputState: newState
+          });
+        }
         return newState;
       }, inputState);
     }
-    _console('groupEnd')('* End Middlewar Group\n');
     return outputState;
   }
 
-  function _execSyncPipeWithMiddlewares(middlewares, inputState) {
-    var preState = _execPipeMiddleware(middlewares, inputState, 'pre');
-    var outputState = _extends({}, preState);
-    if (!preState.skip) outputState.value = preState.pipe.handle(preState.value);
-    var newState = _execPipeMiddleware(middlewares.reverse(), outputState, 'post');
-    return newState.value;
-  }
-
-  function _warpPipeState() {
-    var value = arguments.length <= 0 || arguments[0] === undefined ? _output : arguments[0];
-    var pipe = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-    return { name: _pipelineName, value: value, pipe: pipe, skip: false };
-  }
-
-  function _console() {
-    var type = arguments.length <= 0 || arguments[0] === undefined ? 'log' : arguments[0];
-
-    var logger = console[type] ? console[type] : console.log; // eslint-disable-line no-console
-    return function () {
-      _verbose && logger.apply(console, arguments); // eslint-disable-line no-console
-    };
+  function _resetPipeState(state) {
+    return _extends({}, state, { middlewareStack: [] });
   }
 
   return wrapper;
@@ -615,11 +662,18 @@ function BreakPipeline(message) {
 }
 
 BreakPipeline.prototype = Error.prototype;
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 var Pipeline = require('../../dist/pipeline').default;
 var PipelineLogger = require('../../dist/pipeline/middlewares/logger').default;
+var makeRoundNumberHandler = require('../../dist/pipeline/middlewares/number').makeRoundNumberHandler;
 
 Pipeline.pipelineMiddlewares.push(PipelineLogger);
+
+var RoundNumberPipeMiddleware = {
+  type: 'pipe',
+  name: 'RoundNumberPipeMiddleware',
+  post: makeRoundNumberHandler()
+};
 
 var pl = new Pipeline('myPipeline', [
   {name: 'pipe1', handle: v => 1 / v},
@@ -632,9 +686,18 @@ var pl = new Pipeline('myPipeline', [
       });
     }
   },
+  {handle: v => [1, 2, 3]},
+  {name: 'map', handle: v => 1/v, filter: v => v < 30, type: 'mapFlow'},
+  {
+    name: 'reduce',
+    type: 'reduceFlow',
+    handle: (pre, cur) => pre + cur,
+    initialValue: 0,
+    middlewares: [RoundNumberPipeMiddleware]
+  },
   {name: 'plus', handle: v => v + 0.1}
 ]);
 
 pl.flow(10);
 
-},{"../../dist/pipeline":1,"../../dist/pipeline/middlewares/logger":2}]},{},[5]);
+},{"../../dist/pipeline":1,"../../dist/pipeline/middlewares/logger":2,"../../dist/pipeline/middlewares/number":3}]},{},[6]);
