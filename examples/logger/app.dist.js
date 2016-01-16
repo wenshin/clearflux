@@ -25,23 +25,11 @@ var PipeLoggerMiddleware = exports.PipeLoggerMiddleware = {
   type: 'pipe',
   name: 'PipeLoggerMiddleware',
   pre: function pre(pipeState) {
-    var _pipeState$pipe = pipeState.pipe;
-    var _pipeState$pipe$name = _pipeState$pipe.name;
-    var name = _pipeState$pipe$name === undefined ? '' : _pipeState$pipe$name;
-    var _pipeState$pipe$order = _pipeState$pipe.order;
-    var order = _pipeState$pipe$order === undefined ? '' : _pipeState$pipe$order;
-
-    _console('info')(pipeState.value + ' >>> ' + (name || 'pipe' + order), pipeState);
-    return _extends({}, pipeState, { skip: true });
+    _logPipe(pipeState);
+    return _extends({}, pipeState, { skip: false });
   },
   post: function post(pipeState) {
-    var _pipeState$pipe2 = pipeState.pipe;
-    var _pipeState$pipe2$name = _pipeState$pipe2.name;
-    var name = _pipeState$pipe2$name === undefined ? '' : _pipeState$pipe2$name;
-    var _pipeState$pipe2$orde = _pipeState$pipe2.order;
-    var order = _pipeState$pipe2$orde === undefined ? '' : _pipeState$pipe2$orde;
-
-    _console('info')(pipeState.value + ' <<< ' + (name || 'pipe' + order), pipeState);
+    _logPipe(pipeState, true);
     return pipeState;
   }
 };
@@ -50,7 +38,7 @@ var PipelineLoggerMiddleware = {
   type: 'pipeline',
   name: 'PipelineLoggerMiddleware',
   pre: function pre(pipeState) {
-    _console('groupCollapsed')('Start Pipeline: ' + pipeState.name);
+    _console('groupCollapsed')(pipeState.name || 'Pipeline');
     return pipeState;
   },
   post: function post(pipeState) {
@@ -66,6 +54,16 @@ function _console() {
 
   if (!console) return;
   return (console[type] || console.log).bind(console); // eslint-disable-line no-console
+}
+
+function _logPipe(state) {
+  var isOutput = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
+
+  var logger = isOutput ? 'log' : 'info';
+  var type = isOutput ? 'out' : ' in';
+  var name = state.pipe.name || 'pipe' + state.pipe.order;
+  name = isOutput ? name.replace(/./g, ' ') : name;
+  _console(logger)('%c' + name + ' %c' + type + ' %c' + state.value, 'color: #26C6DA', 'color: #555', 'color: #26A69A', state);
 }
 
 exports.default = PipelineLoggerMiddleware;
