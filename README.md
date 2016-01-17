@@ -13,8 +13,8 @@ $ npm install --save clearflux
 
 ### 初始化 Store 和 Action
 ```js
-var Store = require('./lib/store');
-var Action = require('./lib/action');
+var Store = require('clearflux/dist/store');
+var Action = require('clearflux/dist/action');
 
 var myStore = new Store({
   foo: 1, 

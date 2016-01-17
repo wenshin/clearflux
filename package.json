@@ -1,6 +1,6 @@
 {
   "name": "clearflux",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "A more clear simple flux. Store with loading and errors watching. Actions are only functions.",
   "homepage": "https://github/wenshin/clearflux",
   "author": {
@@ -37,6 +37,7 @@
     "isparta": "^4.0.0"
   },
   "scripts": {
+    "prepublish": "gulp prepublish",
     "test": "gulp covertest",
     "debug-test": "node debug $(which gulp) test"
   },
