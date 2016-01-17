@@ -72,11 +72,24 @@ describe('pipelineWrap', function () {
     }, 30);
   });
 
+  it('可以正确用 mapFlow 处理对象', function () {
+    let except = pipelineWrap({1: 10, 2: 20, 3: 30})
+    // let except = pipelineWrap({1: 10, 2: 20, 3: 30}, {middlewares: [PipelineLoggerMiddleware]})
+      .mapFlow({handle: v => 1/v, filter: v => v < 30})
+      .reduceFlow({
+        handle: (pre, cur) => pre + cur,
+        initialValue: 0,
+        middlewares: [RoundNumberPipeMiddleware]
+      })
+      .finish();
+    assert.equal(except, 0.15);
+  });
+
   // it('应该正确处理异步管道出错', function (done) {});
 
   it('可以正确执行同步方法 mapFlow 和 reduceFlow', function () {
-    // let except = pipelineWrap(10)
-    let except = pipelineWrap(10, {middlewares: [PipelineLoggerMiddleware]})
+    let except = pipelineWrap(10)
+    // let except = pipelineWrap(10, {middlewares: [PipelineLoggerMiddleware]})
       .flow(v => [1*v, 2*v, 3*v])
       .mapFlow({handle: v => 1/v, filter: v => v < 30})
       .reduceFlow({
