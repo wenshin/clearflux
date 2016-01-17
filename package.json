@@ -1,12 +1,12 @@
 {
   "name": "clearflux",
-  "version": "0.0.0",
-  "description": "",
-  "homepage": "",
+  "version": "0.0.1",
+  "description": "A more clear simple flux. Store with loading and errors watching. Actions are only functions.",
+  "homepage": "https://github/wenshin/clearflux",
   "author": {
     "name": "yuanwen",
     "email": "wenshin2011@gmail.com",
-    "url": ""
+    "url": "https://github/wenshin/clearflux"
   },
   "files": [
     "dist"
@@ -32,11 +32,9 @@
     "gulp-exclude-gitignore": "^1.0.0",
     "gulp-istanbul": "^0.9.0",
     "gulp-mocha": "^2.0.0",
-    "gulp-nsp": "^0.4.5",
+    "gulp-nsp": "^2.3.0",
     "gulp-plumber": "^1.0.0",
-    "isparta": "^4.0.0",
-    "webpack": "^1.12.9",
-    "webpack-dev-server": "^1.14.0"
+    "isparta": "^4.0.0"
   },
   "scripts": {
     "prepublish": "gulp prepublish",
