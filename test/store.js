@@ -212,6 +212,38 @@ describe('store', function () {
 });
 
 describe('store:combine', function () {
+  let action = {name: 'combineAction'};
+  let store = new Store({a: 1, b: 2});
+  store.combine({
+    ab: {queries: ['a', 'b'], get: (a, b) => a + b},
+    ab1: {queries: ['a', 'b'], get: (a, b) => a - b}
+  });
+  store.registerWriter(action);
+
+  it('should combine props to one and can trigger change event', done => {
+
+    let triggerValues = [];
+    store.onChange('ab', ab => {
+      triggerValues.push(ab);
+    });
+
+    store.put('a', 3, action);
+
+    // store.startLoading('b');
+    // store.setErrors('b', 'error');
+
+    setTimeout(() => {
+      assert.ok(triggerValues.length, `没有触发事件`);
+      assert.deepEqual(triggerValues, [
+        {value: 3, loading: false, errors: []},
+        {value: 5, loading: false, errors: []}
+      ]);
+      done();
+    }, 20);
+  });
+});
+
+describe('store:combineLoadings', function () {
   let store = new Store({a: 0});
   let store1 = new Store({a: 1});
   let store2 = new Store({a: 2});
