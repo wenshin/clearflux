@@ -1,5 +1,5 @@
 # clearflux [![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Dependency Status][daviddm-image]][daviddm-url] [![Coverage percentage][coveralls-image]][coveralls-url]
-> 
+>
 
 
 ## Install
@@ -13,11 +13,15 @@ $ npm install --save clearflux
 
 ### 初始化 Store 和 Action
 ```js
-var Store = require('clearflux/dist/store');
-var Action = require('clearflux/dist/action');
+// ES5
+var Store = require('clearflux').Store;
+var Action = require('clearflux').Action;
+
+// ES6
+import clearflux from 'clearflux';
 
 var myStore = new Store({
-  foo: 1, 
+  foo: 1,
   foo1: {a: 1}
 });
 
@@ -68,15 +72,15 @@ Store 可以使用 onChange、onLoading、onError 监听特定的事件。
 
   * Store.onChange(Query query, callback)  监听`query`的值、loading 状态、错误信息改变。
     `callback` 接受一个包含 value, loading, errors 属性的对象。
-  
+
       ```
       // 监听 myStore foo 属性的值、loading 状态、错误信息改变。loading 为 布尔值，errors 为数组
       myStore.onChange('foo', ({value: foo, loading, errors}) => {})
-      
+
       // 监听 myStore foo 和 foo.a 属性的值、loading 状态、错误信息改变
       myStore.onChange('foo&foo.a', ({value: foo, loading, errors}) => {})
       ```
-  
+
   * Store.onLoading(Query query, callback) 只监听`query`的 loading 状态改变。`callback`接受和 onChange 一样的参数
   * Store.onError(Query query, callback) 只监听`query`的 errors 值改变。`callback`接受和 onChange 一样的参数
 
