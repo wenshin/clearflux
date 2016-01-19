@@ -11,14 +11,14 @@ $ npm install --save clearflux
 
 ## Usage
 
-### 初始化 Store 和 Action
+### 初始化 Store 和 Actions
 ```js
 // ES5
 var Store = require('clearflux').Store;
-var Action = require('clearflux').Action;
+var Actions = require('clearflux').Actions;
 
 // ES6
-import clearflux from 'clearflux';
+import {Store, Actions} from 'clearflux';
 
 var myStore = new Store({
   foo: 1,
