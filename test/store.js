@@ -209,6 +209,28 @@ describe('store', function () {
       done();
     }, 40);
   });
+
+  it('should reset loading and errors when put data', done => {
+    let store = new Store({a: 1, b: {c: 1}});
+    let triggerValues = [];
+    store.onChange('b', b => {
+      triggerValues.push(b);
+    });
+    store.registerWriter(action);
+
+    store.setErrors('b', 'errors', action);
+    store.startLoading('b', action);
+    store.put('b', {c: 2}, action);
+
+    setTimeout(() => {
+      assert.ok(triggerValues.length, `没有触发事件`);
+      assert.deepEqual(triggerValues, [
+        {loading: false, errors: [], value: {c: 1}},
+        {loading: false, errors: [], value: {c: 2}}
+      ]);
+      done();
+    }, 30);
+  });
 });
 
 describe('store:combine', function () {
