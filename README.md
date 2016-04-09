@@ -31,6 +31,7 @@ var myAction = new Actions(myStore, {
     // putStore 替换整个指定的属性，第一个参数，称作 Query。
     this.putStore('foo', 2);
     this.putStore('foo1.a', 2);
+
     // patchStore 不会删除数据，只会补充或者修改
     this.patchStore({foo1: {c: 1}});
 
@@ -38,18 +39,26 @@ var myAction = new Actions(myStore, {
 
     // 设置 'foo1.a' 为 loading 状态
     this.startLoading('foo1.a');
+
     // 设置 'foo1.a' 为非 loading 状态
     this.stopLoading('foo1.a');
+
     // startLoading 和 stopLoading 会触发
     // 使用 myStore.onChange(), myStore.onLoading() 监听的事件
 
     // 追加 'foo1.a' 的 errors 信息
     this.setErrors('foo1.a', 'Error Message');
     this.setErrors('foo1.a', ['Error Message']);
+
     // 移除'foo1.a' 所有的错误信息
     this.removeErrors('foo1.a');
+
     // setErrors 和 removeErrors 会触发
     // 使用 myStore.onChange(), myStore.onError() 监听的事件
+
+    // putStore 的第二个参数为 promise 对象时，会自动改变 loading 和 error 状态
+    this.putStore('foo', Promise.resovle(2));
+    this.putStore('foo', Promise.reject('error'));
   },
   updateSomeThing() {
     // some actions
@@ -59,6 +68,7 @@ var myAction = new Actions(myStore, {
 ```
 
 ### Query
+
 query 是一种查询对象属性的字符串。允许使用 'a.b.c' 表示 {a: {b: {c: 1}}} 中的 c 属性。
 query 也可以是使用`&`拼接的多个属性。
 

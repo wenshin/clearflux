@@ -1,6 +1,6 @@
 {
   "name": "clearflux",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "A more clear simple flux. Store with loading and errors watching. Actions are only functions.",
   "homepage": "https://github/wenshin/clearflux",
   "author": {
