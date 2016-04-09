@@ -34,6 +34,67 @@ describe('store', function () {
       {value: defaultValues.d, loading: false, errors: []}]);
   });
 
+  it('should auto change loading status when put promise', function (done) {
+    let PROMISE_DELAY = 15;
+    let excepted = [];
+    let exceptedLoadings = [];
+
+    let promiseValue = new Promise((resolve) => {
+      setTimeout(() => resolve(2), PROMISE_DELAY);
+    });
+    let store = new Store({a: 1, b: {c: 1}});
+
+    store.onChange('b.c', s => excepted.push(s));
+    store.onLoading('b.c', s => exceptedLoadings.push(s.loading));
+
+    store.registerWriter(action);
+    store.put('b.c', promiseValue, action);
+
+    setTimeout(() => {
+      assert.ok(excepted.length, `值为“${excepted}”的事件没有触发`);
+      assert.ok(exceptedLoadings.length, `值为“${exceptedLoadings}”的事件没有触发`);
+      assert.deepEqual(excepted, [
+        {loading: false, errors: [], value: 1},
+        {loading: true, errors: [], value: 1},
+        {loading: false, errors: [], value: 2}
+      ]);
+      assert.deepEqual(exceptedLoadings, [false, true, false]);
+      done();
+    }, PROMISE_DELAY + 15); // 必须延长 > 10 秒的时间才能监听到 promise 结束的事件
+  });
+
+  it('should auto change error status when put promise', function (done) {
+    let PROMISE_DELAY = 15;
+    let excepted = [];
+    let exceptedLoadings = [];
+    let exceptedErrors = [];
+
+    let promiseValue = new Promise((resolve, reject) => {
+      setTimeout(() => reject('error'), PROMISE_DELAY);
+    });
+    let store = new Store({a: 1, b: {c: 1}});
+
+    store.onChange('b.c', s => excepted.push(s));
+    store.onLoading('b.c', s => exceptedLoadings.push(s.loading));
+    store.onError('b.c', s => exceptedErrors.push(s.errors));
+
+    store.registerWriter(action);
+    store.put('b.c', promiseValue, action);
+
+    setTimeout(() => {
+      assert.ok(excepted.length, `值为“${excepted}”的事件没有触发`);
+      assert.ok(exceptedLoadings.length, `值为“${exceptedLoadings}”的事件没有触发`);
+      assert.deepEqual(excepted, [
+        {loading: false, errors: [], value: 1},
+        {loading: true, errors: [], value: 1},
+        {loading: false, errors: ['error'], value: 1}
+      ]);
+      assert.deepEqual(exceptedLoadings, [false, true, false]);
+      assert.deepEqual(exceptedErrors, [[], [], ['error']]);
+      done();
+    }, PROMISE_DELAY + 15); // 必须延长 > 10 秒的时间才能监听到 promise 结束的事件
+  });
+
   it('should trigger root level property change event when no other events bind', function (done) {
     let store = new Store({a: 1, b: {c: 1}});
 
