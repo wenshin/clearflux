@@ -24,6 +24,14 @@ describe('LightDB', function () {
     assert.deepEqual(db.findByIndex(0), {id: 2, name: 'name2'});
   });
 
+  it('should update and put right', function () {
+    let db = new LightDB([{id: 1, name: 'name1', age: 11}, {id: 2, name: 'name2', age: 12}]);
+    db.update({id: 1, age: 111});
+    assert.deepEqual(db.findById(1), {id: 1, name: 'name1', age: 111});
+    db.put({id: 1, age: 111});
+    assert.deepEqual(db.findById(1), {id: 1, age: 111});
+  });
+
   it('should inherited Array methods!', function () {
     let db = new LightDB([{id: 1, name: 'name1'}]);
     let newItem = {id: 2, name: 'name2'};
