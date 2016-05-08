@@ -94,6 +94,12 @@ Store 可以使用 onChange、onLoading、onError 监听特定的事件。
   * Store.onLoading(Query query, callback) 只监听`query`的 loading 状态改变。`callback`接受和 onChange 一样的参数
   * Store.onError(Query query, callback) 只监听`query`的 errors 值改变。`callback`接受和 onChange 一样的参数
 
+## ChangeLog
+
+### 2016-05-03 v0.1.5
+  * 添加 LightDB 工具
+  * 补充部分文档
+
 ## License
 
 MIT © [yuanwen]()
