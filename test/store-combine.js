@@ -4,7 +4,6 @@ import Store from '../lib/store';
 const ASYNC_TEST_DELAY = 5;
 
 describe('store:combine', function () {
-  let action = {name: 'combineAction'};
   let store;
 
   let triggerValues = [];
@@ -16,14 +15,13 @@ describe('store:combine', function () {
       ab: {queries: ['a', 'b'], get: (a, b) => a + b},
       ab1: {queries: ['a', 'b'], get: (a, b) => a - b}
     });
-    store.registerWriter(action);
     triggerValues = [];
   });
 
   it('should combine props to one and can trigger change event', done => {
     store.onChange('ab', handleChange);
 
-    store.put('a', 3, action);
+    store.put('a', 3);
 
     setTimeout(() => {
       assert.ok(triggerValues.length, `没有触发事件`);
@@ -39,10 +37,10 @@ describe('store:combine', function () {
   it('should trigger loading event right', done => {
     store.onChange('ab1', handleChange);
 
-    store.startLoading('a', action);
+    store.startLoading('a');
 
     setTimeout(() => {
-      store.stopLoading('a', action);
+      store.stopLoading('a');
     }, ASYNC_TEST_DELAY);
 
     setTimeout(() => {
@@ -60,10 +58,10 @@ describe('store:combine', function () {
   it('should trigger errors event right', done => {
     store.onChange('ab1', v => handleChange(v));
 
-    store.setErrors('a', 'error', action);
+    store.setErrors('a', 'error');
 
     setTimeout(() => {
-      store.removeErrors('a', action);
+      store.removeErrors('a');
     }, ASYNC_TEST_DELAY);
 
     setTimeout(() => {
@@ -81,12 +79,12 @@ describe('store:combine', function () {
   it('should trigger change events when mix operation', done => {
     store.onChange('ab1', v => handleChange(v));
 
-    store.put('a', 3, action);
-    store.startLoading('a', action);
+    store.put('a', 3);
+    store.startLoading('a');
 
     setTimeout(() => {
-      store.stopLoading('a', action);
-      store.setErrors('b', 'error', action);
+      store.stopLoading('a');
+      store.setErrors('b', 'error');
     }, ASYNC_TEST_DELAY);
 
     setTimeout(() => {

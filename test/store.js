@@ -1,5 +1,4 @@
 import {assert} from 'chai';
-import { StoreWritePermissionError } from '../lib/error';
 import Store from '../lib/store';
 
 const ASYNC_TEST_DELAY = 5;
@@ -8,15 +7,6 @@ const PROMISE_DELAY = 5;
 // NOTE: setTimeout 延时时间是经过试验设置的，如果修改可能会影响测试结果
 
 describe('store', function () {
-  let action = {};
-
-  it('should not put values directly!', function () {
-    let store = new Store({a: 1, b: {c: 1}});
-    assert.throws(() => store.put('a', 2), StoreWritePermissionError);
-
-    store.registerWriter(action);
-    assert.doesNotThrow(() => store.put('a', 2, action), StoreWritePermissionError);
-  });
 
   it('should get default values deeply copied', function() {
     let defaultValues = {a: 1, b: {c: 1}};
@@ -49,8 +39,7 @@ describe('store', function () {
     store.onChange('b.c', s => excepted.push(s));
     store.onLoading('b.c', s => exceptedLoadings.push(s.loading));
 
-    store.registerWriter(action);
-    store.put('b.c', promiseValue, action);
+    store.put('b.c', promiseValue);
 
     setTimeout(() => {
       assert.ok(excepted.length, `值为“${excepted}”的事件没有触发`);
@@ -79,8 +68,7 @@ describe('store', function () {
     store.onLoading('b.c', s => exceptedLoadings.push(s.loading));
     store.onError('b.c', s => exceptedErrors.push(s.errors));
 
-    store.registerWriter(action);
-    store.put('b.c', promiseValue, action);
+    store.put('b.c', promiseValue);
 
     setTimeout(() => {
       assert.ok(excepted.length, `值为“${excepted}”的事件没有触发`);
@@ -113,8 +101,7 @@ describe('store', function () {
       assert.equal(this. store);
     });
 
-    store.registerWriter(action);
-    store.put('b.c', 2, action);
+    store.put('b.c', 2);
 
     setTimeout(() => {
       assert.ok(!excepted.length, `值为“${excepted}”的事件没有触发`);
@@ -153,8 +140,7 @@ describe('store', function () {
       assert.equal(this. store);
     });
 
-    store.registerWriter(action);
-    store.put('b.c', 2, action);
+    store.put('b.c', 2);
 
     setTimeout(() => {
       assert.ok(!allExcepted.length, `整个数据，值为“${allExcepted}”的事件没有触发`);
@@ -175,8 +161,7 @@ describe('store', function () {
       triggerValues.push(c.value);
     });
 
-    store.registerWriter(action);
-    store.put('b', {c: {d: 2}}, action);
+    store.put('b', {c: {d: 2}});
 
     setTimeout(() => {
       assert.ok(triggerValues.length, `没有触发事件`);
@@ -193,8 +178,7 @@ describe('store', function () {
       triggerValues.push([a.value, b.value]);
     });
 
-    store.registerWriter(action);
-    store.patch({b: {d: 2}}, action);
+    store.patch({b: {d: 2}});
 
     setTimeout(() => {
       assert.ok(triggerValues.length, `没有触发事件`);
@@ -212,8 +196,7 @@ describe('store', function () {
     store.onChange('a&b', handler);
     store.offChange('a&b', handler);
 
-    store.registerWriter(action);
-    store.patch({b: {d: 2}}, action);
+    store.patch({b: {d: 2}});
 
     setTimeout(() => {
       assert.ok(triggerValues.length, `没有触发事件`);
@@ -228,12 +211,11 @@ describe('store', function () {
     store.onChange('b', b => {
       triggerValues.push(b);
     });
-    store.registerWriter(action);
-    store.startLoading('b', action);
+    store.startLoading('b');
 
     setTimeout(() => {
-      store.stopLoading('b', action);
-      store.setErrors('b', 'errors', action);
+      store.stopLoading('b');
+      store.setErrors('b', 'errors');
     }, ASYNC_TEST_DELAY);
 
     setTimeout(() => {
@@ -254,11 +236,10 @@ describe('store', function () {
     store.onChange('b', b => {
       triggerValues.push(b);
     });
-    store.registerWriter(action);
-    store.setErrors('b', 'errors', action);
+    store.setErrors('b', 'errors');
 
     setTimeout(() => {
-      store.removeErrors('b', action);
+      store.removeErrors('b');
     }, ASYNC_TEST_DELAY);
 
     setTimeout(() => {
@@ -278,11 +259,10 @@ describe('store', function () {
     store.onChange('b', b => {
       triggerValues.push(b);
     });
-    store.registerWriter(action);
 
-    store.setErrors('b', 'errors', action);
-    store.startLoading('b', action);
-    store.put('b', {c: 2}, action);
+    store.setErrors('b', 'errors');
+    store.startLoading('b');
+    store.put('b', {c: 2});
 
     setTimeout(() => {
       assert.ok(triggerValues.length, `没有触发事件`);

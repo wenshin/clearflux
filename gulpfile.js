@@ -50,12 +50,7 @@ gulp.task('test', ['pre-test'], function (cb) {
     })
     .pipe(istanbul.writeReports())
     .on('end', function (err) {
-      // 'test failed'.indexOf('1 test failed') === -1 !!!
-      if ( !/tests?\s+failed/gi.test(mochaErr.message) ) {
-        cb(mochaErr);
-      } else {
-        cb(err);
-      }
+      cb(mochaErr || err);
     });
 });
 
