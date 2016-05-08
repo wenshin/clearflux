@@ -2,6 +2,9 @@ import {assert} from 'chai';
 import { StoreWritePermissionError } from '../lib/error';
 import Store from '../lib/store';
 
+const ASYNC_TEST_DELAY = 5;
+const PROMISE_DELAY = 5;
+
 // NOTE: setTimeout 延时时间是经过试验设置的，如果修改可能会影响测试结果
 
 describe('store', function () {
@@ -35,7 +38,6 @@ describe('store', function () {
   });
 
   it('should auto change loading status when put promise', function (done) {
-    let PROMISE_DELAY = 15;
     let excepted = [];
     let exceptedLoadings = [];
 
@@ -60,11 +62,10 @@ describe('store', function () {
       ]);
       assert.deepEqual(exceptedLoadings, [false, true, false]);
       done();
-    }, PROMISE_DELAY + 15); // 必须延长 > 10 秒的时间才能监听到 promise 结束的事件
+    }, PROMISE_DELAY + ASYNC_TEST_DELAY); // 必须延长 > 10 秒的时间才能监听到 promise 结束的事件
   });
 
   it('should auto change error status when put promise', function (done) {
-    let PROMISE_DELAY = 15;
     let excepted = [];
     let exceptedLoadings = [];
     let exceptedErrors = [];
@@ -92,7 +93,7 @@ describe('store', function () {
       assert.deepEqual(exceptedLoadings, [false, true, false]);
       assert.deepEqual(exceptedErrors, [[], [], ['error']]);
       done();
-    }, PROMISE_DELAY + 15); // 必须延长 > 10 秒的时间才能监听到 promise 结束的事件
+    }, PROMISE_DELAY + ASYNC_TEST_DELAY);
   });
 
   it('should trigger root level property change event when no other events bind', function (done) {
@@ -118,7 +119,7 @@ describe('store', function () {
     setTimeout(() => {
       assert.ok(!excepted.length, `值为“${excepted}”的事件没有触发`);
       done();
-    }, 20);
+    }, ASYNC_TEST_DELAY);
   });
 
   it('should trigger root level property change event', function (done) {
@@ -159,7 +160,7 @@ describe('store', function () {
       assert.ok(!allExcepted.length, `整个数据，值为“${allExcepted}”的事件没有触发`);
       assert.ok(!excepted.length, `值为“${excepted}”的事件没有触发`);
       done();
-    }, 20);
+    }, ASYNC_TEST_DELAY);
   });
 
   it('should trigger multi watch right when put', function (done) {
@@ -182,7 +183,7 @@ describe('store', function () {
       assert.deepEqual(triggerValues, [{}, {d: 2}]);
       assert.deepEqual(bTriggerValues, [{c: {}}, {c: {d: 2}}]);
       done();
-    }, 20);
+    }, ASYNC_TEST_DELAY);
   });
 
   it('should trigger multi watch right when patch', function (done) {
@@ -199,7 +200,7 @@ describe('store', function () {
       assert.ok(triggerValues.length, `没有触发事件`);
       assert.deepEqual(triggerValues, [[1, {c: 1}], [1, {c: 1, d: 2}]]);
       done();
-    }, 20);
+    }, ASYNC_TEST_DELAY);
   });
 
   it('should not trigger change event after offChange', function (done) {
@@ -218,7 +219,7 @@ describe('store', function () {
       assert.ok(triggerValues.length, `没有触发事件`);
       assert.deepEqual(triggerValues, [[1, {c: 1}]]);
       done();
-    }, 20);
+    }, ASYNC_TEST_DELAY);
   });
 
   it('should trigger change event when set loading and stop loading', function (done) {
@@ -233,7 +234,7 @@ describe('store', function () {
     setTimeout(() => {
       store.stopLoading('b', action);
       store.setErrors('b', 'errors', action);
-    }, 20);
+    }, ASYNC_TEST_DELAY);
 
     setTimeout(() => {
       assert.ok(triggerValues.length, `没有触发事件`);
@@ -244,7 +245,7 @@ describe('store', function () {
         {loading: false, errors: ['errors'], value: {c: 1}}
       ]);
       done();
-    }, 40);
+    }, ASYNC_TEST_DELAY * 2);
   });
 
   it('should trigger change event when set erros and remove errors', function (done) {
@@ -258,7 +259,7 @@ describe('store', function () {
 
     setTimeout(() => {
       store.removeErrors('b', action);
-    }, 20);
+    }, ASYNC_TEST_DELAY);
 
     setTimeout(() => {
       assert.ok(triggerValues.length, `没有触发事件`);
@@ -268,7 +269,7 @@ describe('store', function () {
         {loading: false, errors: [], value: {c: 1}}
       ]);
       done();
-    }, 40);
+    }, ASYNC_TEST_DELAY * 2);
   });
 
   it('should reset loading and errors when put data', done => {
@@ -290,6 +291,6 @@ describe('store', function () {
         {loading: false, errors: [], value: {c: 2}}
       ]);
       done();
-    }, 30);
+    }, ASYNC_TEST_DELAY);
   });
 });

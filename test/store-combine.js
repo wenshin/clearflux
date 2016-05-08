@@ -1,6 +1,8 @@
 import {assert} from 'chai';
 import Store from '../lib/store';
 
+const ASYNC_TEST_DELAY = 5;
+
 describe('store:combine', function () {
   let action = {name: 'combineAction'};
   let store;
@@ -31,7 +33,7 @@ describe('store:combine', function () {
       ]);
       store.offChange('ab', handleChange);
       done();
-    }, 20);
+    }, ASYNC_TEST_DELAY);
   });
 
   it('should trigger loading event right', done => {
@@ -41,7 +43,7 @@ describe('store:combine', function () {
 
     setTimeout(() => {
       store.stopLoading('a', action);
-    }, 20);
+    }, ASYNC_TEST_DELAY);
 
     setTimeout(() => {
       assert.ok(triggerValues.length, `没有触发事件`);
@@ -52,7 +54,7 @@ describe('store:combine', function () {
       ]);
       store.offChange('ab1', handleChange);
       done();
-    }, 40);
+    }, ASYNC_TEST_DELAY * 2);
   });
 
   it('should trigger errors event right', done => {
@@ -62,7 +64,7 @@ describe('store:combine', function () {
 
     setTimeout(() => {
       store.removeErrors('a', action);
-    }, 20);
+    }, ASYNC_TEST_DELAY);
 
     setTimeout(() => {
       assert.ok(triggerValues.length, `没有触发事件`);
@@ -73,7 +75,7 @@ describe('store:combine', function () {
       ]);
       store.offChange('ab1', handleChange);
       done();
-    }, 40);
+    }, ASYNC_TEST_DELAY * 2);
   });
 
   it('should trigger change events when mix operation', done => {
@@ -85,7 +87,7 @@ describe('store:combine', function () {
     setTimeout(() => {
       store.stopLoading('a', action);
       store.setErrors('b', 'error', action);
-    }, 20);
+    }, ASYNC_TEST_DELAY);
 
     setTimeout(() => {
       assert.ok(triggerValues.length, `没有触发事件`);
@@ -96,6 +98,6 @@ describe('store:combine', function () {
       ]);
       store.offChange('ab1', handleChange);
       done();
-    }, 40);
+    }, ASYNC_TEST_DELAY * 2);
   });
 });

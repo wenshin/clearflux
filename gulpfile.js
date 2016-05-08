@@ -1,4 +1,5 @@
 'use strict';
+
 var path = require('path');
 var gulp = require('gulp');
 var eslint = require('gulp-eslint');
@@ -37,10 +38,11 @@ gulp.task('pre-test', function () {
     .pipe(istanbul.hookRequire());
 });
 
+// `gulp test` test all test cases
+// `gulp test -f test/specify/test.js` test specified test cases
 gulp.task('test', ['pre-test'], function (cb) {
   var mochaErr;
-
-  gulp.src('test/**/*.js')
+  gulp.src(process.argv[4] || 'test/**/*.js')
     .pipe(plumber())
     .pipe(mocha({reporter: 'spec'}))
     .on('error', function (err) {
