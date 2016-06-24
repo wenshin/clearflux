@@ -96,6 +96,10 @@ Store 可以使用 onChange、onLoading、onError 监听特定的事件。
 
 ## ChangeLog
 
+### 2016-05-03 v0.1.6
+  * 去掉 validator，请使用 vajs
+  * 升级 lodash to 4+
+
 ### 2016-05-03 v0.1.5
   * 添加 LightDB 工具
   * 补充部分文档
